@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        #output {
+            background: #f0f0f0;
+            padding: 20px;
+            border-radius: 5px;
+            margin-top: 20px;
+            white-space: pre-wrap;
+        }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>City Tour Optimizer - API Test</h1>
+    
+    <div>
+        <button onclick="testSampleCities()">1. Test Get Sample Cities</button>
+        <button onclick="testLoadCities()">2. Test Load Cities</button>
+        <button onclick="testFetchCoordinates()">3. Test Fetch Coordinates</button>
+        <button onclick="testOptimize()">4. Test Optimize</button>
+        <button onclick="testGetRoute()">5. Test Get Route</button>
+    </div>
+    
+    <div id="output">Click buttons above to test API endpoints...</div>
+    
+    <script>
+        const output = document.getElementById('output');
+        
+        function log(message, isError = false) {
+            const timestamp = new Date().toLocaleTimeString();
+            const className = isError ? 'error' : 'success';
+            output.innerHTML += `<div class="${className}">[${timestamp}] ${message}</div>`;
+            console.log(message);
+        }
+        
+        async function testSampleCities() {
+            log('Testing /api/sample-cities...');
+            try {
+                const response = await fetch('/api/sample-cities');
+                const data = await response.json();
+                log('Sample Cities Response: ' + JSON.stringify(data, null, 2));
+            } catch (error) {
+                log('Error: ' + error.message, true);
+            }
+        }
+        
+        async function testLoadCities() {
+            log('Testing /api/load-cities...');
+            try {
+                const cities = ['Mumbai', 'Delhi', 'Bangalore'];
+                const response = await fetch('/api/load-cities', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ cities: cities })
+                });
+                const data = await response.json();
+                log('Load Cities Response: ' + JSON.stringify(data, null, 2));
+            } catch (error) {
+                log('Error: ' + error.message, true);
+            }
+        }
+        
+        async function testFetchCoordinates() {
+            log('Testing /api/fetch-coordinates...');
+            try {
+                const response = await fetch('/api/fetch-coordinates', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await response.json();
+                log('Fetch Coordinates Response: ' + JSON.stringify(data, null, 2));
+            } catch (error) {
+                log('Error: ' + error.message, true);
+            }
+        }
+        
+        async function testOptimize() {
+            log('Testing /api/optimize-route...');
+            try {
+                const response = await fetch('/api/optimize-route', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        algorithm: 'nearest_neighbor',
+                        start_city: 0
+                    })
+                });
+                const data = await response.json();
+                log('Optimize Response: ' + JSON.stringify(data, null, 2));
+            } catch (error) {
+                log('Error: ' + error.message, true);
+            }
+        }
+        
+        async function testGetRoute() {
+            log('Testing /api/get-route-data...');
+            try {
+                const response = await fetch('/api/get-route-data');
+                const data = await response.json();
+                log('Get Route Response: ' + JSON.stringify(data, null, 2));
+            } catch (error) {
+                log('Error: ' + error.message, true);
+            }
+        }
+    </script>
+</body>
+</html>

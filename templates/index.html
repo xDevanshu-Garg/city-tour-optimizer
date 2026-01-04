@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>City Tour Optimizer - TSP Route Planner</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <!-- Theme Toggle -->
+    <button id="themeToggle" class="theme-toggle" aria-label="Toggle theme">
+        <i class="fas fa-moon"></i>
+    </button>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-route"></i>
+                    <h1>City Tour Optimizer</h1>
+                </div>
+                <p class="subtitle">Find the shortest route through multiple cities using advanced TSP algorithms</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Control Panel -->
+            <div class="control-panel">
+                <div class="panel-section">
+                    <h2><i class="fas fa-city"></i> City Selection</h2>
+                    
+                    <!-- City Input Methods -->
+                    <div class="input-methods">
+                        <div class="input-method active" data-method="sample">
+                            <i class="fas fa-list"></i> Sample Cities
+                        </div>
+                        <div class="input-method" data-method="manual">
+                            <i class="fas fa-keyboard"></i> Manual Entry
+                        </div>
+                        <div class="input-method" data-method="upload">
+                            <i class="fas fa-upload"></i> Upload CSV
+                        </div>
+                    </div>
+
+                    <!-- Sample Cities -->
+                    <div class="input-content" id="sampleContent">
+                        <button class="btn btn-primary" id="loadSampleBtn">
+                            <i class="fas fa-download"></i> Load Sample Cities
+                        </button>
+                    </div>
+
+                    <!-- Manual Entry -->
+                    <div class="input-content" id="manualContent" style="display: none;">
+                        <div class="city-input-group">
+                            <input type="text" id="cityInput" placeholder="Enter city name (e.g., Mumbai)" class="input-field">
+                            <button class="btn btn-secondary" id="addCityBtn">
+                                <i class="fas fa-plus"></i> Add
+                            </button>
+                        </div>
+                        <small class="help-text">Press Enter to add cities quickly</small>
+                    </div>
+
+                    <!-- CSV Upload -->
+                    <div class="input-content" id="uploadContent" style="display: none;">
+                        <div class="upload-area" id="uploadArea">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p>Drag & drop CSV file here or click to browse</p>
+                            <input type="file" id="csvFileInput" accept=".csv" hidden>
+                        </div>
+                    </div>
+
+                    <!-- City List -->
+                    <div class="city-list-container">
+                        <div class="list-header">
+                            <h3>Cities (<span id="cityCount">0</span>)</h3>
+                            <button class="btn-icon" id="clearCitiesBtn" title="Clear all">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                        <ul id="cityList" class="city-list"></ul>
+                    </div>
+                </div>
+
+                <!-- Algorithm Settings -->
+                <div class="panel-section">
+                    <h2><i class="fas fa-cog"></i> Algorithm Settings</h2>
+                    
+                    <div class="algorithm-selector">
+                        <label class="radio-label">
+                            <input type="radio" name="algorithm" value="nearest_neighbor" checked>
+                            <span class="radio-custom"></span>
+                            <div class="radio-content">
+                                <strong>Nearest Neighbor</strong>
+                                <small>Fast, good for small datasets</small>
+                            </div>
+                        </label>
+                        
+                        <label class="radio-label">
+                            <input type="radio" name="algorithm" value="genetic">
+                            <span class="radio-custom"></span>
+                            <div class="radio-content">
+                                <strong>Genetic Algorithm</strong>
+                                <small>Slower, better optimization</small>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="startCity">Starting City</label>
+                        <select id="startCity" class="input-field">
+                            <option value="0">First city in list</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="panel-section">
+                    <h2><i class="fas fa-play"></i> Actions</h2>
+                    
+                    <div class="action-buttons">
+                        <button class="btn btn-primary btn-large" id="optimizeBtn" disabled>
+                            <i class="fas fa-route"></i>
+                            <span>Optimize Route</span>
+                        </button>
+                        
+                        <button class="btn btn-secondary" id="exportBtn" disabled>
+                            <i class="fas fa-download"></i> Export
+                        </button>
+                        
+                        <button class="btn btn-secondary" id="resetBtn">
+                            <i class="fas fa-redo"></i> Reset
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Statistics -->
+                <div class="panel-section stats-panel">
+                    <h2><i class="fas fa-chart-line"></i> Statistics</h2>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon"><i class="fas fa-city"></i></div>
+                            <div class="stat-content">
+                                <div class="stat-value" id="statCities">0</div>
+                                <div class="stat-label">Cities</div>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-icon"><i class="fas fa-route"></i></div>
+                            <div class="stat-content">
+                                <div class="stat-value" id="statDistance">-</div>
+                                <div class="stat-label">Total Distance</div>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                            <div class="stat-content">
+                                <div class="stat-value" id="statTime">-</div>
+                                <div class="stat-label">Compute Time</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Visualization Panel -->
+            <div class="visualization-panel">
+                <!-- Map Container -->
+                <div class="map-container">
+                    <div id="map" class="map"></div>
+                    <div class="map-overlay" id="mapOverlay">
+                        <i class="fas fa-map-marked-alt"></i>
+                        <p>Add cities and optimize to see the route</p>
+                    </div>
+                </div>
+
+                <!-- Route Details -->
+                <div class="route-details">
+                    <div class="route-header">
+                        <h2><i class="fas fa-list-ol"></i> Route Details</h2>
+                        <div class="route-controls">
+                            <button class="btn-icon" id="expandRouteBtn" title="Expand all">
+                                <i class="fas fa-expand"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="routeSteps" class="route-steps">
+                        <div class="empty-state">
+                            <i class="fas fa-route"></i>
+                            <p>No route calculated yet</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Progress Modal -->
+    <div id="progressModal" class="modal">
+        <div class="modal-content">
+            <div class="progress-container">
+                <i class="fas fa-spinner fa-spin"></i>
+                <h3 id="progressTitle">Processing...</h3>
+                <p id="progressMessage">Please wait...</p>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <span id="progressPercent">0%</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toastMessage"></span>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet-polylinedecorator@1.6.0/dist/leaflet.polylineDecorator.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
