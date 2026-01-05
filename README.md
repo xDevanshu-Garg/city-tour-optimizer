@@ -48,6 +48,23 @@ This project focuses on **algorithmic problem solving**, **backend–frontend in
 
 ## How to Run Locally
 
-pip install -r requirements.txt
-python app.py
-Open your browser and visit: http://localhost:5000 or just ctrl click the link from terminal.
+- pip install -r requirements.txt
+- python app.py
+- Open your browser and visit: http://localhost:5000 or just ctrl click the link from terminal.
+
+
+## Flow
+
+The frontend sends city data to a Flask API endpoint. Flask runs the TSP algorithm in Python and returns the optimized route as JSON.
+
+```bash
+Frontend (HTML/JS)
+   ↓ fetch()
+Flask API (app.py)
+   ↓
+Optimization logic (optimizer_engine.py)
+   ↓
+JSON response
+   ↓
+Frontend renders route on Leaflet map
+```
